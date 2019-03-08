@@ -81,11 +81,14 @@ func (s *serializer) createObject(metric telegraf.Metric) ([]byte, error) {
 
 	oimetric.Source = "Telegraf"
 
-	// Process Tags to extract node & resource name info
+	// Process Tags to extract node, resource name info and ci2metric_id
+	cimapping := map[string]string{}
 	for _, tag := range metric.TagList() {
 		if tag.Key == "" || tag.Value == "" {
 			continue
 		}
+
+		cimapping[tag.Key] = tag.Value
 
 		if tag.Key == "objectname" {
 			oimetric.Resource = tag.Value
@@ -94,6 +97,11 @@ func (s *serializer) createObject(metric telegraf.Metric) ([]byte, error) {
 		if tag.Key == "host" {
 			oimetric.Node = tag.Value
 		}
+	}
+
+	oimetric.CiMapping = cimapping
+	if oimetric.Node != "" {
+		cimapping["node"] = oimetric.Node
 	}
 
 	// Format timestamp to UNIX epoch
@@ -113,12 +121,6 @@ func (s *serializer) createObject(metric telegraf.Metric) ([]byte, error) {
 
 		oimetric.Metric = field.Key
 		oimetric.Value = field.Value
-
-		if oimetric.Node != "" {
-			cimapping := map[string]string{}
-			cimapping["node"] = oimetric.Node
-			oimetric.CiMapping = cimapping
-		}
 
 		allmetrics = append(allmetrics, oimetric)
 	}
