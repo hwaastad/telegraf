@@ -97,7 +97,7 @@ func (m *Divergent) Push(acc telegraf.Accumulator) {
       diff := v.maxTs.Sub(v.minTs).Seconds()
       fields[k+"_divergent"] = (v.max - v.min)/diff
       m.cache[key].fields[k].min = m.cache[key].fields[k].max
-        m.cache[key].fields[k].minTS = m.cache[key].fields[k].maxTs
+      m.cache[key].fields[k].minTS = m.cache[key].fields[k].maxTs
     }
     if len(fields) > 0 {
       acc.AddFields(aggregate.name, fields, aggregate.tags)
