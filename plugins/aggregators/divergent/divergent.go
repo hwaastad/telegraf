@@ -62,7 +62,7 @@ func (m *Divergent) Add(in telegraf.Metric) {
 				a.fields[field.Key] = divergent{
 					min:   fv,
 					max:   fv,
-					minTs:  in.Time()
+					minTs:  in.Time(),
 					maxTs: in.Time()
 				}
 			}
@@ -75,7 +75,7 @@ func (m *Divergent) Add(in telegraf.Metric) {
 					m.cache[id].fields[field.Key] = divergent{
             min:   fv,
   					max:   fv,
-  					minTs:  in.Time()
+  					minTs:  in.Time(),
   					maxTs: in.Time()
 					}
 					continue
