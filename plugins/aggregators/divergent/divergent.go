@@ -63,7 +63,7 @@ func (m *Divergent) Add(in telegraf.Metric) {
 					min:   fv,
 					max:   fv,
 					minTs:  in.Time(),
-					maxTs: in.Time()
+					maxTs: in.Time(),
 				}
 			}
       m.cache[id] = a
@@ -76,7 +76,7 @@ func (m *Divergent) Add(in telegraf.Metric) {
             min:   fv,
   					max:   fv,
   					minTs:  in.Time(),
-  					maxTs: in.Time()
+  					maxTs: in.Time(),
 					}
 					continue
         }
