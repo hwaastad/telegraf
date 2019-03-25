@@ -2,7 +2,8 @@ package internal
 
 import (
 	"runtime"
-
+	"time"
+	
 	"github.com/influxdata/telegraf"
 	"github.com/influxdata/telegraf/plugins/inputs"
 	"github.com/influxdata/telegraf/selfstat"
