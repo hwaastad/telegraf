@@ -22,7 +22,7 @@ type aggregate struct {
 
 type divergent struct {
 	min   float64
-  midTs time.Time
+  minTs time.Time
 	max   float64
 	maxTs time.Time
 }
@@ -66,7 +66,8 @@ func (m *Divergent) Add(in telegraf.Metric) {
 					maxTs: in.Time(),
 				}
 			}
-      m.cache[id] = a
+    }
+    m.cache[id] = a
   } else {
     for _, field := range in.FieldList() {
 			if fv, ok := convert(field.Value); ok {
