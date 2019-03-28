@@ -139,6 +139,8 @@ func (m *BasicStats) Add(in telegraf.Metric) {
 				tmp.diff = fv - tmp.FIRST
 				//store final data
 				m.cache[id].fields[field.Key] = tmp
+			} else {
+				log.Printf("W! Failure in converting value '%s' = %s, ignoring", field,field.Value)
 			}
 		}
 	}
