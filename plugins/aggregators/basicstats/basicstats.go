@@ -75,6 +75,7 @@ func (m *BasicStats) Add(in telegraf.Metric) {
 			fields: make(map[string]basicstats),
 		}
 		for _, field := range in.FieldList() {
+			log.Printf("I! Adding field '%s' for the first time", field)
 			if fv, ok := convert(field.Value); ok {
 				a.fields[field.Key] = basicstats{
 					count: 1,
@@ -84,11 +85,14 @@ func (m *BasicStats) Add(in telegraf.Metric) {
 					sum:   fv,
 					M2:    0.0,
 				}
-			}
+			} else {
+        log.Printf("W! Could not convert field '%s' for the first time", field)
+      }
 		}
 		m.cache[id] = a
 	} else {
 		for _, field := range in.FieldList() {
+			log.Printf("W! Updating field '%s' to cache", field)
 			if fv, ok := convert(field.Value); ok {
 				if _, ok := m.cache[id].fields[field.Key]; !ok {
 					// hit an uncached field of a cached metric
@@ -129,7 +133,9 @@ func (m *BasicStats) Add(in telegraf.Metric) {
 				tmp.sum += fv
 				//store final data
 				m.cache[id].fields[field.Key] = tmp
-			}
+			} else {
+        log.Printf("W! Could not convert field: '%s' and value '%s'", field,fv)
+      }
 		}
 	}
 }

@@ -1,15 +1,13 @@
 package divergent
 
 import (
-	"log"
-	"math"
 
 	"github.com/influxdata/telegraf"
 	"github.com/influxdata/telegraf/plugins/aggregators"
 )
 
 type Divergent struct {
-	Stats []string `toml:"divergent"`
+  Stats []string `toml:"divergent"`
 
   cache map[uint64]aggregate
 }
@@ -21,15 +19,15 @@ type aggregate struct {
 }
 
 type divergent struct {
-	min   float64
-  minTs time.Time
-	max   float64
-	maxTs time.Time
+	min    float64
+  min_ts int64
+	max    float64
+	max_ts int64
 }
 
 func NewDivergent() telegraf.Aggregator {
   m := &Divergent{}
-	m.Reset()
+	m.cache = make(map[uint64]aggregate)
 	return m
 }
 
@@ -62,8 +60,8 @@ func (m *Divergent) Add(in telegraf.Metric) {
 				a.fields[field.Key] = divergent{
 					min:   fv,
 					max:   fv,
-					minTs:  in.Time(),
-					maxTs: in.Time(),
+					min_ts:  in.Time().Unix(),
+					max_ts: in.Time().Unix(),
 				}
 			}
     }
@@ -76,15 +74,14 @@ func (m *Divergent) Add(in telegraf.Metric) {
 					m.cache[id].fields[field.Key] = divergent{
             min:   fv,
   					max:   fv,
-  					minTs:  in.Time(),
-  					maxTs: in.Time(),
+  					min_ts:  in.Time().Unix(),
+  					max_ts: in.Time().Unix(),
 					}
 					continue
         }
         tmp := m.cache[id].fields[field.Key]
         tmp.max = fv
-        tmp.maxTs = in.Time()
-
+        tmp.max_ts = in.Time().Unix()
         m.cache[id].fields[field.Key] = tmp
       }
     }
@@ -92,13 +89,15 @@ func (m *Divergent) Add(in telegraf.Metric) {
 }
 
 func (m *Divergent) Push(acc telegraf.Accumulator) {
-  for key, aggregate := range m.cache {
+  for _, aggregate := range m.cache {
 		fields := map[string]interface{}{}
 		for k, v := range aggregate.fields {
-      diff := v.maxTs.Sub(v.minTs).Seconds()
-      fields[k+"_divergent"] = (v.max - v.min)/diff
-      m.cache[key].fields[k].min = m.cache[key].fields[k].max
-      m.cache[key].fields[k].minTS = m.cache[key].fields[k].maxTs
+      diff := v.max_ts - v.min_ts
+      tmp := aggregate.fields[k];
+      fields[k+"_divergent"] = (v.max - v.min)/float64(diff)
+      tmp.min = v.max
+      tmp.min_ts = v.max_ts
+      aggregate.fields[k] = tmp
     }
     if len(fields) > 0 {
       acc.AddFields(aggregate.name, fields, aggregate.tags)
@@ -107,14 +106,16 @@ func (m *Divergent) Push(acc telegraf.Accumulator) {
 }
 
 func (m *Divergent) Reset() {
-  	m.cache = make(map[uint64]aggregate)
+  	//m.cache = make(map[uint64]aggregate)
 }
 
 func convert(in interface{}) (float64, bool) {
 	switch v := in.(type) {
-	case float64:
+  case float64:
 		return v, true
 	case int64:
+		return float64(v), true
+	case uint64:
 		return float64(v), true
 	default:
 		return 0, false
